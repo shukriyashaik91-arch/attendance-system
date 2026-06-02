@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Student Dashboard</h1>
+
+    <div id="students"></div>
+
+    <script>
+        async function getStudents() {
+
+            try {
+
+                const response = await fetch(
+                    "http://localhost:5000/api/students"
+                );
+
+                const students = await response.json();
+
+                let html = "";
+
+                students.forEach(student => {
+
+                    let percentage =
+                        (student.attendedClasses /
+                        student.totalClasses) * 100;
+
+                    let classesNeeded = 0;
+
+                    if (percentage < 75) {
+
+                        while (
+                            ((student.attendedClasses + classesNeeded) /
+                            (student.totalClasses + classesNeeded)) * 100 < 75
+                        ) {
+                            classesNeeded++;
+                        }
+                    }
+
+                    html += `
+                    <div class="student-card">
+
+                        <h2>${student.name}</h2>
+
+                        <p>
+                            <strong>Roll No:</strong>
+                            ${student.rollNo}
+                        </p>
+
+                        <p>
+                            <strong>Total Classes:</strong>
+                            ${student.totalClasses}
+                        </p>
+
+                        <p>
+                            <strong>Attended Classes:</strong>
+                            ${student.attendedClasses}
+                        </p>
+
+                        <p>
+                            <strong>Attendance:</strong>
+                            ${percentage.toFixed(2)}%
+                        </p>
+
+                        <div class="progress">
+                            <div class="progress-bar"
+                                 style="width:${percentage}%">
+                                 ${percentage.toFixed(0)}%
+                            </div>
+                        </div>
+
+                        ${
+                            percentage >= 75
+                            ?
+                            `<p class="success">
+                                ✅ Eligible
+                            </p>`
+                            :
+                            `<p class="danger">
+                                ❌ Need ${classesNeeded}
+                                more classes to reach 75%
+                            </p>`
+                        }
+
+                    </div>
+                    `;
+                });
+
+                document.getElementById("students")
+                    .innerHTML = html;
+
+            } catch (error) {
+
+                console.error(error);
+
+                document.getElementById("students")
+                    .innerHTML =
+                    "<h3>Failed to load students</h3>";
+            }
+        }
+
+        getStudents();
+    </script>
+
+</body>
+</html>
